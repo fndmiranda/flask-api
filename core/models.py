@@ -1,6 +1,4 @@
-from flask import current_app
-from peewee import Model
-from peewee import SqliteDatabase
+from peewee import Model, SqliteDatabase
 
 database = SqliteDatabase('database.sqlite')
 
