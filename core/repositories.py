@@ -1,5 +1,8 @@
 from abc import ABC
+from flask import request
 from flask_restful import marshal
+from peewee import Model
+import math
 
 
 class BaseRepository(ABC):
@@ -10,6 +13,8 @@ class BaseRepository(ABC):
     @classmethod
     def paginate(cls, filters={}, options={}):
         """Retrieve all data by filters paginated."""
+
+        print('####Test2####: {}'.format(request.args.get('page', 3)))
 
         query = cls.get(filters, options)
 
@@ -27,12 +32,12 @@ class BaseRepository(ABC):
             #         if cls._validate_page(cls._page + 1) else None
             #     )
             # },
-            # 'meta': {
-            #     'current_page': cls._page,
-            #     'last_page': cls._page_count,
-            #     'per_page': cls._limit,
-            #     'total': cls._count,
-            # }
+            'meta': {
+                'current_page': cls._page,
+                'last_page': cls._page_count,
+                'per_page': cls._limit,
+                'total': cls._count,
+            }
         }
 
         return response
@@ -40,6 +45,12 @@ class BaseRepository(ABC):
     @classmethod
     def get(cls, filters={}, options={}):
         """Retrieve all data by filters."""
+
+        cls._limit = cls._get_limit(options)
+        cls._page = cls._get_page(options)
+        cls._count = cls.count(filters)
+        cls._page_count = int(math.ceil(cls._count / cls._limit))
+
         return cls.get_model().select()
 
     @classmethod
@@ -64,8 +75,18 @@ class BaseRepository(ABC):
     #   return doc
 
     @classmethod
+    def count(cls, filters={}):
+        """Count the number of registers by filter."""
+
+        return cls.get_model().select().count()
+
+    @classmethod
     def get_model(cls):
-        """Get the model."""
+        """
+        Get the model.
+
+        :rtype: Model
+        """
         if cls._model is None:
             raise ValueError('Model is required, set _model')
         return cls._model
