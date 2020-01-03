@@ -1,5 +1,6 @@
-from flask import Flask
-from user.views.user import user
+from flask import Flask, Blueprint
+from flask_restful import Api
+from user.views.user import UserDetail, UserList
 
 
 def create_app(config_filename):
@@ -9,7 +10,13 @@ def create_app(config_filename):
 
     app.config.from_pyfile('settings.py')
 
-    app.register_blueprint(user, url_prefix="/user")
+    blueprint = Blueprint('api', __name__)
+    api = Api(blueprint)
+
+    api.add_resource(UserList, '/user/users')
+    api.add_resource(UserDetail, '/user/users/<user_id>')
+
+    app.register_blueprint(blueprint)
 
     @app.route('/', methods=['GET'])
     def index():
