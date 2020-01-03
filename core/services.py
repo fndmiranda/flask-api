@@ -10,6 +10,11 @@ class BaseService(ABC):
     _repository = None
 
     @classmethod
+    def paginate(cls, filters={}, options={}):
+        """Retrieve all data by filters paginated."""
+        return cls.get_repository().paginate(filters, options)
+
+    @classmethod
     def get(cls, filters={}, options={}):
         """Retrieve all data by filters."""
         return cls.get_repository().get()

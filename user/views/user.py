@@ -8,8 +8,10 @@ from user.services import UserService
 
 class UserList(Resource):
     def get(self):
-        query = UserService().get()
-        return [marshal(i, resource()) for i in query]
+        data = UserService().paginate()
+        return data
+        # query = UserService().get()
+        # return [marshal(i, resource()) for i in query]
 
     def post(self):
         v = Validator(validation())
