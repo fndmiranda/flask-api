@@ -4,6 +4,10 @@ env:
     export $(shell sed 's/=.*//' .env)
   endif
 
+requirements-dev:
+	@pip install --upgrade pip
+	@pip install -r requirements/development.txt
+
 start:
 	docker-compose up -d
 
@@ -12,3 +16,6 @@ runserver-dev: env
 
 routes: env
 	flask routes
+
+flake8:
+	@flake8 app/ --show-source

@@ -1,6 +1,5 @@
 from flask import Flask
 from user.views.user import user
-from app.database import get_db
 
 
 def create_app(config_filename):

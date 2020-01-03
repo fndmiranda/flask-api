@@ -1,4 +1,5 @@
-import click, operator
+import click
+import operator
 from flask import current_app
 
 
