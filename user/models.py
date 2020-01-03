@@ -1,8 +1,11 @@
 from core.models import BaseModel
 from peewee import CharField, DateTimeField
+from user.resources import user as resource
 
 
 class User(BaseModel):
+    _resource = resource()
+
     name = CharField()
     email = CharField(unique=True)
     password = CharField()
