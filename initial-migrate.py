@@ -1,4 +1,5 @@
-from playhouse.migrate import *
+from playhouse.migrate import SqliteDatabase
+from playhouse.migrate import SqliteMigrator
 from user.models import User
 
 

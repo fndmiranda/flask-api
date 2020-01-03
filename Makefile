@@ -18,4 +18,4 @@ routes: env
 	flask routes
 
 flake8:
-	@flake8 app/ --show-source
+	@flake8 --show-source

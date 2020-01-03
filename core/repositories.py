@@ -1,5 +1,5 @@
 from abc import ABC
-from flask_restful import Resource, marshal
+from flask_restful import marshal
 
 
 class BaseRepository(ABC):
