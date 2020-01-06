@@ -3,7 +3,7 @@ from playhouse.migrate import SqliteMigrator
 from user.models import User
 
 
-# SQLite example:
+# @Todo: This file will be used before implementing the migration feature.
 db = SqliteDatabase('database.sqlite')
 migrator = SqliteMigrator(db)
 

@@ -1,8 +1,9 @@
 from flask_restful import fields
+from core.resources import BaseResource
 
 
-def user():
-    return {
+class User(BaseResource):
+    _fields = {
         'id': fields.Integer,
         'name': fields.String,
         'email': fields.String,

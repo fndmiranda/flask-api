@@ -1,6 +1,6 @@
 from flask import Flask, Blueprint
 from flask_restful import Api
-from user.views.user import UserDetail, UserList
+from user.views import UserDetail, UserList
 
 
 def create_app(config_filename):
