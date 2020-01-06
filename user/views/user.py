@@ -1,4 +1,4 @@
-from flask import request, jsonify
+from flask import request
 from flask_restful import Resource, marshal
 from cerberus import Validator
 from user.validations import user as validation
