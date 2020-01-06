@@ -12,10 +12,10 @@ start:
 	docker-compose up -d
 
 runserver-dev: env
-	flask run
+	@flask run
 
 routes: env
-	flask routes
+	@flask routes
 
 flake8:
 	@flake8 --show-source
