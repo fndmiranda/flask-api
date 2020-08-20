@@ -7,4 +7,4 @@ Authlib==0.13
 Flask-RESTful==0.3.7
 peewee==3.13.1
 Cerberus==1.3.2
-flake8==3.7.9
+gunicorn==20.0.4

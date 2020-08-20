@@ -13,6 +13,15 @@ requirements-dev:
 runserver-dev:
 	@flask run
 
+run:
+	@gunicorn run:app -t 120
+
+create-user:
+	@flask user user:create
+
+create-user-admin:
+	@flask user user:create --admin
+
 routes: env
 	@flask routes
 

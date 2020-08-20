@@ -22,8 +22,9 @@ def upgrade():
         'user_users',
         sa.Column('id', sa.Integer, primary_key=True),
         sa.Column('name', sa.String(255), nullable=False),
-        sa.Column('email', sa.String(255), nullable=False),
+        sa.Column('email', sa.String(255), nullable=False, unique=True),
         sa.Column('password', sa.String(255), nullable=False),
+        sa.Column('is_admin', sa.Boolean(), nullable=False, default=False),
         sa.Column('created_at', sa.DateTime, default=datetime.datetime.now),
         sa.Column('updated_at', sa.DateTime, default=datetime.datetime.now, onupdate=datetime.datetime.now),
     )

@@ -54,7 +54,7 @@ $ flask app migrate:run ae1
 Execute the following command to revert to an version:
 
 ```terminal
-$ flask app migrate:revert -1
+$ flask app migrate:downgrade -1
 ```
 
 Relative identifiers may also be in terms of a specific revision.

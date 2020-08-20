@@ -10,28 +10,41 @@ class BaseRepository(ABC):
 
     _session = Session()
     _model = None
+    _options = {}
 
     @classmethod
-    def paginate(cls, expressions=None, options={}):
+    def set_options(cls, options={}):
+        """Set optional data, eg: to pagination."""
+        cls._options.update(options)
+        return cls
+
+    @classmethod
+    def paginate(cls, **expressions):
         """Retrieve all data by expressions paginated."""
+        cls._page = cls._get_page()
+        cls._limit = cls._get_limit()
+        cls._count = cls.count(**expressions)
+        cls._page_count = int(math.ceil(cls._count / cls._limit))
+
+        query = cls.filter(**expressions).offset(cls._limit * (cls._page - 1)).limit(cls._limit)
 
         response = {
-            'data':  cls._prepare(expressions=expressions, options=options, paginate=True),
+            'data': query.all(),
             'meta': {
                 'current_page': cls._page,
                 'per_page': cls._limit,
                 'total': cls._count,
             },
             'links': {
-                'first':  cls._get_url(1),
-                'last':  cls._get_url(cls._page_count),
+                'first': cls._get_url(1),
+                'last': cls._get_url(cls._page_count),
                 'prev': (
-                     cls._get_url(cls._page - 1)
-                     if cls._validate_page(cls._page - 1) else None
+                    cls._get_url(cls._page - 1)
+                    if cls._validate_page(cls._page - 1) else None
                 ),
                 'next': (
-                     cls._get_url(cls._page + 1)
-                     if cls._validate_page(cls._page + 1) else None
+                    cls._get_url(cls._page + 1)
+                    if cls._validate_page(cls._page + 1) else None
                 ),
             },
         }
@@ -39,9 +52,14 @@ class BaseRepository(ABC):
         return response
 
     @classmethod
-    def get(cls, expressions=None, options={}):
+    def filter(cls, **expressions):
+        """Apply the given filtering criterion."""
+        return cls._session.query(cls.get_model()).filter_by(**expressions)
+
+    @classmethod
+    def get(cls, **expressions):
         """Retrieve all data by expressions."""
-        return cls._prepare(expressions=expressions, options=options)
+        return cls.filter(**expressions).all()
 
     @classmethod
     def find(cls, pk):
@@ -51,20 +69,15 @@ class BaseRepository(ABC):
         return data
 
     @classmethod
-    def find_by(cls, expressions):
+    def find_by(cls, **expressions):
         """Retrieve one data by pk."""
-        data = cls._session.query(cls.get_model()).filter(expressions).first()
-        cls._session.commit()
+        data = cls.filter(**expressions).first()
         return data
 
     @classmethod
-    def count(cls, expressions=None):
+    def count(cls, **expressions):
         """Count the number of registers by expressions."""
-        query = cls._session.query(cls.get_model())
-
-        if expressions is not None:
-            query = query.filter(expressions)
-
+        query = cls.filter(**expressions)
         cls._session.commit()
 
         return query.count()
@@ -72,7 +85,7 @@ class BaseRepository(ABC):
     @classmethod
     def update(cls, pk_or_model, payload={}):
         """Update a register by pk or model."""
-        data = pk_or_model if isinstance(pk_or_model, cls.get_model()) else  cls.find(pk_or_model)
+        data = pk_or_model if isinstance(pk_or_model, cls.get_model()) else cls.find(pk_or_model)
 
         for column, value in payload.items():
             if hasattr(data, column):
@@ -85,7 +98,7 @@ class BaseRepository(ABC):
     @classmethod
     def create(cls, payload):
         """Save a new register."""
-        data = cls.__populate(**payload)
+        data = cls.make(**payload)
 
         cls._session.add(data)
         cls._session.commit()
@@ -100,14 +113,14 @@ class BaseRepository(ABC):
         cls._session.delete(data)
         cls._session.commit()
 
-        print('data_delete', data)
-
         return data
 
     @classmethod
     def make(cls, **kwargs):
         """Make a instance of the model."""
-        return cls.__populate(**kwargs)
+        if cls._model is None:
+            raise ValueError('Model is required, set _model')
+        return cls._model(**kwargs)
 
     @classmethod
     def get_model(cls):
@@ -117,41 +130,15 @@ class BaseRepository(ABC):
         return cls._model
 
     @classmethod
-    def _prepare(cls, expressions=None, options={}, paginate=False):
-        cls._page = cls._get_page(options)
-        cls._limit = cls._get_limit(options)
-        cls._count = cls.count(expressions)
-        cls._page_count = int(math.ceil(cls._count / cls._limit))
-
-        query = cls._session.query(cls.get_model())
-
-        if expressions is not None:
-            query = query.filter(expressions)
-
-        if paginate:
-            query = query.offset(cls._limit * (cls._page - 1))
-
-        query = query.limit(cls._limit)
-
-        return query.all()
-
-    @classmethod
-    def __populate(cls, **kwargs):
-        """Get the model."""
-        if cls._model is None:
-            raise ValueError('Model is required, set _model')
-        return cls._model(**kwargs)
-
-    @classmethod
-    def _get_page(cls, options={}):
+    def _get_page(cls):
         """Get current page."""
-        page = options.get('page') if 'page' in options else int(request.args.get('page', 1))
+        page = cls._options.get('page') if 'page' in cls._options else int(request.args.get('page', 1))
         return page if page > 0 else 1
 
     @classmethod
-    def _get_limit(cls, options={}):
+    def _get_limit(cls):
         """Get retrieve limit of registers."""
-        limit = options.get('limit') if 'limit' in options else int(
+        limit = cls._options.get('limit') if 'limit' in cls._options else int(
             request.args.get('limit', cls.get_model().get_default_limit())
         )
         return limit if limit <= cls.get_model().get_max_limit() else cls.get_model().get_max_limit()
