@@ -11,7 +11,7 @@ from authlib.oauth2.rfc6749 import grants
 from auth.grants import PasswordGrant
 
 
-def create_app(config_filename):
+def create_app():
     """Construct the core application."""
 
     app = Flask(__name__)

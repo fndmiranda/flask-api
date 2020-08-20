@@ -10,10 +10,10 @@ requirements-dev:
 	@pip install --upgrade pip
 	@pip install -r requirements/development.txt
 
-runserver-dev:
+runserver-dev: env
 	@flask run
 
-run:
+runserver: env
 	@gunicorn run:app -t 120
 
 create-user:

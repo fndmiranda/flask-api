@@ -37,6 +37,14 @@ $ cp .env.example .env
 
 ### Run migrations
 
+Execute the following command to create a migration:
+
+```terminal
+$ flask app migrate:create "Create catalog_products table"
+```
+
+The migrations will be created in the `alembic/versions` folder.
+
 Execute the following command to upgrade to last revision:
 
 ```terminal
@@ -54,7 +62,7 @@ $ flask app migrate:run ae1
 Execute the following command to revert to an version:
 
 ```terminal
-$ flask app migrate:downgrade -1
+$ flask app migrate:revert -1
 ```
 
 Relative identifiers may also be in terms of a specific revision.
