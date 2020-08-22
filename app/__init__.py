@@ -9,6 +9,8 @@ from user.commands import bp as bp_user_cli
 from user.views import UserDetail, UserList
 from authlib.oauth2.rfc6749 import grants
 from auth.grants import PasswordGrant
+from .interceptors import init_interceptors
+from app.schema import ma
 
 
 def create_app():
@@ -16,7 +18,10 @@ def create_app():
 
     app = Flask(__name__)
 
+    init_interceptors(app)
     app.config.from_pyfile('settings.py')
+
+    ma.init_app(app)
 
     blueprint = Blueprint('api', __name__)
     api = Api(blueprint)

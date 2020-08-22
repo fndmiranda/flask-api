@@ -1,6 +1,7 @@
 from abc import ABC
 from flask import abort
 
+
 class BaseService(ABC):
     """Class representing the abstract base service."""
 

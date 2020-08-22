@@ -10,6 +10,7 @@ class BaseRepository(ABC):
 
     _session = Session()
     _model = None
+    _schema = None
     _options = {}
 
     @classmethod
@@ -28,8 +29,10 @@ class BaseRepository(ABC):
 
         query = cls.filter(**expressions).offset(cls._limit * (cls._page - 1)).limit(cls._limit)
 
+        schema = cls.get_schema(many=True)
+
         response = {
-            'data': query.all(),
+            'data': schema.dump(query.all()),
             'meta': {
                 'current_page': cls._page,
                 'per_page': cls._limit,
@@ -128,6 +131,13 @@ class BaseRepository(ABC):
         if cls._model is None:
             raise ValueError('Model is required, set _model')
         return cls._model
+
+    @classmethod
+    def get_schema(cls, **kwargs):
+        """Get the schema."""
+        if cls._schema is None:
+            raise ValueError('Schema is required, set _schema')
+        return cls._schema(**kwargs)
 
     @classmethod
     def _get_page(cls):

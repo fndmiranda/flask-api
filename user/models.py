@@ -8,7 +8,6 @@ from hmac import compare_digest as compare_hash
 class User(Base, ModelMixin, TimestampMixin):
     __tablename__ = 'user_users'
 
-    id = sa.Column(sa.Integer, primary_key=True, nullable=False)
     name = sa.Column(sa.String(255), nullable=False)
     email = sa.Column(sa.String(255), nullable=False, unique=True)
     password = sa.Column(sa.String(255), nullable=False)
