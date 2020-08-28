@@ -17,6 +17,10 @@ class BaseService(ABC):
         """Retrieve all data by filters paginated."""
         return self.get_repository().set_options(self._options).paginate(**expressions)
 
+    def count(self, **expressions):
+        """Count the number of registers by expressions."""
+        return self.get_repository().count(**expressions)
+
     def get(self, **expressions):
         """Retrieve all data by filters."""
         return self.get_repository().get(**expressions)
@@ -25,9 +29,17 @@ class BaseService(ABC):
         """Retrieve one data by pk."""
         return self.get_repository().find(pk)
 
-    def find_by(self, **expressions):
+    def filter_by(self, **expressions):
         """Retrieve one data by expressions."""
-        return self.get_repository().find_by(**expressions)
+        return self.get_repository().filter_by(**expressions)
+
+    def filter(self, *criterion):
+        """Apply the given filtering criterion using SQL expressions."""
+        return self.get_repository().filter(*criterion)
+
+    def query(self):
+        """Return a query session."""
+        return self.get_repository().query()
 
     def find_or_404(self, pk):
         """Retrieve one data by pk or abort with http status code 404."""

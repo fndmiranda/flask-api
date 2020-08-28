@@ -3,6 +3,7 @@ import math
 from abc import ABC
 from flask import request
 from core.models import Session
+from user.models import User
 
 
 class BaseRepository(ABC):
@@ -27,7 +28,7 @@ class BaseRepository(ABC):
         cls._count = cls.count(**expressions)
         cls._page_count = int(math.ceil(cls._count / cls._limit))
 
-        query = cls.filter(**expressions).offset(cls._limit * (cls._page - 1)).limit(cls._limit)
+        query = cls.filter_by(**expressions).offset(cls._limit * (cls._page - 1)).limit(cls._limit)
 
         schema = cls.get_schema(many=True)
 
@@ -55,14 +56,24 @@ class BaseRepository(ABC):
         return response
 
     @classmethod
-    def filter(cls, **expressions):
+    def filter_by(cls, **expressions):
         """Apply the given filtering criterion."""
         return cls._session.query(cls.get_model()).filter_by(**expressions)
 
     @classmethod
+    def filter(cls, *criterion):
+        """Apply the given filtering criterion using SQL expressions."""
+        return cls._session.query(cls.get_model()).filter(*criterion)
+
+    @classmethod
+    def query(cls):
+        """Return a query session."""
+        return cls._session.query(cls.get_model())
+
+    @classmethod
     def get(cls, **expressions):
         """Retrieve all data by expressions."""
-        return cls.filter(**expressions).all()
+        return cls.filter_by(**expressions).all()
 
     @classmethod
     def find(cls, pk):
@@ -72,15 +83,9 @@ class BaseRepository(ABC):
         return data
 
     @classmethod
-    def find_by(cls, **expressions):
-        """Retrieve one data by pk."""
-        data = cls.filter(**expressions).first()
-        return data
-
-    @classmethod
     def count(cls, **expressions):
         """Count the number of registers by expressions."""
-        query = cls.filter(**expressions)
+        query = cls.filter_by(**expressions)
         cls._session.commit()
 
         return query.count()
