@@ -1,14 +1,11 @@
 from flask import request, g, jsonify, current_app as app
-from cerberus import Validator
-from user.validations import user as validation
 from user.services import UserService
-from user.schemas import UserSchema, UsersPaginationSchema
+from user.schemas import UserSchema, UserPaginationSchema, UserQueryArgsSchema
 from flask_smorest import Blueprint
 from core.models import Session
-from pprint import pprint
 from marshmallow import ValidationError
 
-schema = UserSchema()
+user_schema = UserSchema()
 
 session = Session()
 
@@ -19,16 +16,18 @@ blp = Blueprint(
 
 
 @blp.route("", methods=["GET"])
+@blp.arguments(UserQueryArgsSchema, location='query')
 @blp.response(
-    schema=UsersPaginationSchema, description="List users.",
+    schema=UserPaginationSchema, description="List users.",
 )
-def list_users():
+def list_users(args):
     """List users"""
     app.logger.info(
-        'Starting list users with params: {} of request: {}'.format(
-            request.values.to_dict(), g.request_id
+        'Starting list users with args: {} of request: {}'.format(
+            args, g.request_id
         )
     )
+
     data = UserService().paginate()
     app.logger.info(
         'Response of list users with response: {} of request: {}'.format(
@@ -39,50 +38,36 @@ def list_users():
 
 
 @blp.route("", methods=["POST"])
-@blp.response(UserSchema, code=201)
+@blp.response(user_schema, code=201)
 def create_user():
     """Create user"""
+    app.logger.info(
+        'Starting create user of request: {}'.format(g.request_id)
+    )
     try:
-        result = UserSchema().load(request.json)
-        return jsonify(result)
+        values = user_schema.load(request.json)
+        data = UserService().create(values)
+        response = user_schema.dump(data)
+
+        app.logger.info(
+            'Response of create user with response: {} of request: {}'.format(
+                response, g.request_id
+            )
+        )
+        return jsonify(response), 201
     except ValidationError as err:
         return jsonify(err.messages), 400
 
-    # audit = request.json.copy()
-    # audit.pop('password', None)
-
-    # app.logger.info(
-    #     'Starting create user with params: {} of request: {}'.format(audit, g.request_id)
-    # )
-    #
-    # v = Validator(validation())
-    #
-    # if v.validate(request.json):
-    #     data = schema.dump(UserService().create(request.json))
-    #
-    #     app.logger.info(
-    #         'Response of create user with response: {} of request: {}'.format(data, g.request_id)
-    #     )
-    #
-    #     return jsonify(data), 201
-    # else:
-    #     app.logger.info(
-    #         'Response error of create user with response: {} of request: {}'.format(
-    #             v.errors, g.request_id
-    #         )
-    #     )
-    #     return jsonify(v.errors), 400
-
 
 @blp.route("<user_id>", methods=["GET"])
-@blp.response(UserSchema)
+@blp.response(user_schema)
 def get_user(user_id):
     """Get user by ID"""
     app.logger.info(
         'Starting show user id: {} of request: {}'.format(user_id, g.request_id)
     )
 
-    response = schema.dump(UserService().find_or_404(user_id))
+    response = user_schema.dump(UserService().find_or_404(user_id))
 
     app.logger.info(
         'Response of show user id: {} with response: {} of request: {}'.format(
@@ -93,7 +78,7 @@ def get_user(user_id):
 
 
 @blp.route("<user_id>", methods=["PUT"])
-@blp.response(UserSchema)
+@blp.response(user_schema)
 def put_user(user_id):
     """Update user by ID"""
     app.logger.info(
@@ -101,17 +86,16 @@ def put_user(user_id):
     )
 
     try:
-        data = UserService().update_or_404(
-            user_id, schema.load(request.json)
-        )
-        response = schema.dump(data)
+        values = user_schema.load(request.json)
+        data = UserService().update_or_404(user_id, values)
+        response = user_schema.dump(data)
 
         app.logger.info(
             'Response of update user id: {} with response: {} of request: {}'.format(
                 user_id, response, g.request_id
             )
         )
-        return jsonify(schema.dump(data))
+        return jsonify(user_schema.dump(data))
     except ValidationError as err:
         app.logger.info(
             'Response error of update user id: {} with response: {} of request: {}'.format(
@@ -149,6 +133,7 @@ def put_user(user_id):
 
 
 @blp.route("<user_id>", methods=["DELETE"])
+@blp.response(code=204)
 def delete_user(user_id):
     """Delete user by ID"""
     app.logger.info(

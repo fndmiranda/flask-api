@@ -34,9 +34,9 @@ class UserSchema(Schema):
         user_id = request.view_args.get('user_id', None)
 
         if user_id is None:
-            criterion = (User.email == data)
+            criterion = (User.email == data,)
         else:
-            criterion = (User.email == data, User.id != user_id)
+            criterion = (User.email == data, User.id != user_id,)
 
         query = UserService().filter(*criterion)
 
@@ -57,7 +57,12 @@ class LinkSchema(Schema):
     prev = fields.Url()
 
 
-class UsersPaginationSchema(Schema):
+class UserQueryArgsSchema(Schema):
+    page = fields.Integer()
+    limit = fields.Integer()
+
+
+class UserPaginationSchema(Schema):
     data = fields.List(fields.Nested(lambda: UserSchema()))
     links = fields.Nested(LinkSchema)
     meta = fields.Nested(MetaSchema)
