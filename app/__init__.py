@@ -1,22 +1,20 @@
 import os
 from importlib import resources
 from flask import Flask, Blueprint
-from flask_restful import Api
 from authlib.integrations.flask_oauth2 import AuthorizationServer
 from auth import query_client, save_token, require_oauth
 from auth.views import bp as bp_auth_api
 from auth.commands import bp as bp_auth_cli
 from app.commands import bp as bp_app_cli
 from user.commands import bp as bp_user_cli
-# from user.views import UserDetail, UserList
 from authlib.oauth2.rfc6749 import grants
 from auth.grants import PasswordGrant
 from .interceptors import init_interceptors
 from app.schema import ma
-from flask_smorest import Api, Blueprint, abort
-from flask.views import MethodView
+from flask_smorest import Api, Blueprint
 from flask_cors import CORS
 from user.views import blp as blp_user
+from flask_marshmallow import Marshmallow
 
 
 def create_app():
@@ -28,7 +26,7 @@ def create_app():
     init_interceptors(app)
     app.config.from_pyfile('settings.py')
 
-    ma.init_app(app)
+    Marshmallow(app)
 
     blueprint = Blueprint('api', __name__)
 
@@ -64,10 +62,6 @@ def create_app():
 
     api = Api(app)
     api.register_blueprint(blp_user)
-
-    # api = Api(blueprint)
-    # api.add_resource(UserList, '/user/users')
-    # api.add_resource(UserDetail, '/user/users/<user_id>')
 
     app.register_blueprint(blueprint)
     app.register_blueprint(bp_auth_api)

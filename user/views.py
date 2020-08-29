@@ -1,9 +1,10 @@
-from flask import request, g, jsonify, current_app as app
+from flask import g, jsonify, current_app as app
 from user.services import UserService
 from user.schemas import UserSchema, UserPaginationSchema, UserQueryArgsSchema
 from flask_smorest import Blueprint
 from core.models import Session
 from marshmallow import ValidationError
+from auth import require_oauth
 
 user_schema = UserSchema()
 
@@ -15,11 +16,12 @@ blp = Blueprint(
 )
 
 
-@blp.route("", methods=["GET"])
+@blp.route('', methods=['GET'])
 @blp.arguments(UserQueryArgsSchema, location='query')
 @blp.response(
     schema=UserPaginationSchema, description="List users.",
 )
+@require_oauth()
 def list_users(args):
     """List users"""
     app.logger.info(
@@ -37,15 +39,17 @@ def list_users(args):
     return jsonify(data)
 
 
-@blp.route("", methods=["POST"])
+@blp.route('', methods=['POST'])
+@blp.arguments(user_schema)
 @blp.response(user_schema, code=201)
-def create_user():
+@require_oauth()
+def create_user(args):
     """Create user"""
     app.logger.info(
         'Starting create user of request: {}'.format(g.request_id)
     )
     try:
-        values = user_schema.load(request.json)
+        values = user_schema.load(args)
         data = UserService().create(values)
         response = user_schema.dump(data)
 
@@ -59,8 +63,9 @@ def create_user():
         return jsonify(err.messages), 400
 
 
-@blp.route("<user_id>", methods=["GET"])
+@blp.route('<user_id>', methods=['GET'])
 @blp.response(user_schema)
+@require_oauth()
 def get_user(user_id):
     """Get user by ID"""
     app.logger.info(
@@ -77,16 +82,18 @@ def get_user(user_id):
     return jsonify(response)
 
 
-@blp.route("<user_id>", methods=["PUT"])
+@blp.route('<user_id>', methods=['PUT'])
+@blp.arguments(user_schema)
 @blp.response(user_schema)
-def put_user(user_id):
+@require_oauth()
+def put_user(args, user_id):
     """Update user by ID"""
     app.logger.info(
         'Starting update user id: {} of request: {}'.format(user_id, g.request_id)
     )
 
     try:
-        values = user_schema.load(request.json)
+        values = user_schema.load(args)
         data = UserService().update_or_404(user_id, values)
         response = user_schema.dump(data)
 
@@ -104,36 +111,10 @@ def put_user(user_id):
         )
         return jsonify(err.messages), 400
 
-    # audit = request.json.copy()
-    # audit.pop('password', None)
-    #
-    # app.logger.info(
-    #     'Starting update user with params: {} of request: {}'.format(audit, g.request_id)
-    # )
-    #
-    # v = Validator(validation())
-    #
-    # if v.validate(request.json):
-    #     data = schema.dump(UserService().update_or_404(user_id, request.json))
-    #
-        # app.logger.info(
-        #     'Response of update user id: {} with response: {} of request: {}'.format(
-        #         user_id, data, g.request_id
-        #     )
-        # )
-    #
-    #     return jsonify(data), 201
-    # else:
-    #     app.logger.info(
-    #         'Response error of update user id: {} with response: {} of request: {}'.format(
-    #             user_id, v.errors, g.request_id
-    #         )
-    #     )
-    #     return jsonify(v.errors), 400
 
-
-@blp.route("<user_id>", methods=["DELETE"])
+@blp.route('<user_id>', methods=['DELETE'])
 @blp.response(code=204)
+@require_oauth()
 def delete_user(user_id):
     """Delete user by ID"""
     app.logger.info(

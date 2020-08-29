@@ -11,9 +11,9 @@ from user.models import User
 
 
 class UserSchema(Schema):
-    id = fields.Integer(required=False)
-    name = fields.String(required=True)
-    email = fields.Email(required=True)
+    id = fields.Integer(required=False, dump_only=True)
+    name = fields.String(required=True, validate=[validate.Length(min=3, max=255)])
+    email = fields.Email(required=True, validate=[validate.Length(min=5, max=255)])
     is_admin = fields.Boolean(dump_only=True)
     created_at = fields.DateTime(required=False, dump_only=True)
     updated_at = fields.DateTime(required=False, dump_only=True)

@@ -3,7 +3,6 @@ import math
 from abc import ABC
 from flask import request
 from core.models import Session
-from user.models import User
 
 
 class BaseRepository(ABC):
