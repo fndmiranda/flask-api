@@ -13,6 +13,10 @@ requirements-dev:
 runserver-dev: env
 	@flask run
 
+requirements:
+	@pip install --upgrade pip
+	@pip install -r requirements/production.txt
+
 runserver: env
 	@gunicorn run:app -t 120
 

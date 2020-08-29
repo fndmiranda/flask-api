@@ -155,7 +155,8 @@ class BaseRepository(ABC):
         limit = cls._options.get('limit') if 'limit' in cls._options else int(
             request.args.get('limit', cls.get_model().get_default_limit())
         )
-        return limit if limit <= cls.get_model().get_max_limit() else cls.get_model().get_max_limit()
+        limit = limit if limit <= cls.get_model().get_max_limit() else cls.get_model().get_max_limit()
+        return limit if limit > 0 else 1
 
     @classmethod
     def _validate_page(cls, page):

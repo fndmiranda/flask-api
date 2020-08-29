@@ -38,4 +38,4 @@ def user_create(email, name, password, admin):
     click.echo(click.style('ID: ', fg='yellow') + str(user.id))
     click.echo(click.style('Name: ', fg='yellow') + user.name)
     click.echo(click.style('Email: ', fg='yellow') + user.email)
-    click.echo(click.style('Admin: ', fg='yellow') + 'yes' if user.is_admin else 'no')
+    click.echo(click.style('Admin: ', fg='yellow') + ('yes' if user.is_admin else 'no'))

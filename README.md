@@ -95,13 +95,13 @@ $ flask app migrate:history --verbose
 Execute the following command to create a new user:
 
 ```terminal
-$ flask user user:create
+$ flask user user:create --admin
 ```
 
 Or pass the parameters to silent create.
 
 ```terminal
-$ flask user user:create --name "YourName" --email youremail@domain.com --password yourpass
+$ flask user user:create --name "YourName" --email youremail@domain.com --password yourpass --admin
 ```
 
 ### OAuth2 authentication
@@ -164,8 +164,16 @@ Pragma: no-cache
 
 ### Run application
 
+Execute the following command to run the application in a development environment:
+
 ```terminal
-$ flask run
+$ make runserver-dev
+```
+
+Execute the following command to run the application with gunicorn:
+
+```terminal
+$ make runserver
 ```
 
 ## Display registered routes.
