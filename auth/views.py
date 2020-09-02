@@ -1,11 +1,16 @@
 import time
-from flask import Blueprint, request
-from flask import render_template, redirect, jsonify
+from flask import request
+from flask_smorest import Blueprint
+from flask import render_template, redirect
 from werkzeug.security import gen_salt
 from core.models import Session
 from auth.models import Client
+from . import authorization
 
-bp = Blueprint(__name__, 'home')
+bp = Blueprint(
+    'oauth', 'oauth', url_prefix='/oauth',
+    description='Operations on oauth'
+)
 
 
 def split_by_crlf(s):
@@ -44,3 +49,13 @@ def create_client():
     session.add(client)
     session.commit()
     return redirect('/')
+
+
+@bp.route('/token', methods=['POST'])
+def issue_token():
+    return authorization.create_token_response()
+
+
+@bp.route('/revoke', methods=['POST'])
+def revoke_token():
+    return authorization.create_endpoint_response('revocation')
