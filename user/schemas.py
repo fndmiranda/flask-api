@@ -8,6 +8,7 @@ from marshmallow import (
     pre_load
 )
 from user.models import User
+from core.schemas import LinkSchema, MetaSchema
 
 
 class UserSchema(Schema):
@@ -42,24 +43,6 @@ class UserSchema(Schema):
 
         if bool(query.count()):
             raise ValidationError('Email already exists.')
-
-
-class MetaSchema(Schema):
-    current_page = fields.Integer()
-    per_page = fields.Integer()
-    total = fields.Integer()
-
-
-class LinkSchema(Schema):
-    first = fields.Url()
-    last = fields.Url()
-    next = fields.Url()
-    prev = fields.Url()
-
-
-class UserQueryArgsSchema(Schema):
-    page = fields.Integer()
-    limit = fields.Integer()
 
 
 class UserPaginationSchema(Schema):

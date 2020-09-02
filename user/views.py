@@ -1,6 +1,7 @@
 from flask import g, jsonify, current_app as app
 from user.services import UserService
-from user.schemas import UserSchema, UserPaginationSchema, UserQueryArgsSchema
+from user.schemas import UserSchema, UserPaginationSchema
+from core.schemas import QueryArgsSchema
 from flask_smorest import Blueprint
 from core.models import Session
 from marshmallow import ValidationError
@@ -17,7 +18,7 @@ blp = Blueprint(
 
 
 @blp.route('', methods=['GET'])
-@blp.arguments(UserQueryArgsSchema, location='query')
+@blp.arguments(QueryArgsSchema, location='query')
 @blp.response(
     schema=UserPaginationSchema, description="List users.",
 )
