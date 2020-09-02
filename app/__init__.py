@@ -1,14 +1,12 @@
 import os
 from importlib import resources
 from flask import Flask, Blueprint
-from authlib.integrations.flask_oauth2 import AuthorizationServer
-from auth import query_client, save_token, require_oauth
+from auth import config_oauth, authorization
+from auth import require_oauth
 from auth.views import bp as bp_auth_api
 from auth.commands import bp as bp_auth_cli
 from app.commands import bp as bp_app_cli
 from user.commands import bp as bp_user_cli
-from authlib.oauth2.rfc6749 import grants
-from auth.grants import PasswordGrant
 from .interceptors import init_interceptors
 from app.schema import ma
 from flask_smorest import Api, Blueprint
@@ -21,10 +19,13 @@ def create_app():
     """Construct the core application."""
 
     app = Flask(__name__)
-    CORS(app, resources={r"/api/*": {"origins": "*"}})
+    app.config.from_pyfile('settings.py')
 
     init_interceptors(app)
-    app.config.from_pyfile('settings.py')
+
+    CORS(app, resources={r"/api/*": {"origins": "*"}})
+
+    config_oauth(app)
 
     Marshmallow(app)
 
@@ -47,7 +48,7 @@ def create_app():
             "title": "My API",
             "description": resources.read_text(__package__, "openapi.md")
         },
-        "security": [{"bearerAuth": []}],
+        "security": [{"bearerAuth": []}, {"oauthAuth": []}],
         "components": {
             "securitySchemes": {
                 "bearerAuth": {
@@ -55,6 +56,21 @@ def create_app():
                     "scheme": "bearer",
                     "bearerFormat": "JWT",
                     "description": "Token JWT",
+                },
+                "oauthAuth": {
+                    "type": "oauth2",
+                    "description": "This API uses OAuth 2 with the implicit grant flow.",
+                    "flows": {
+                        "password": {
+                            "tokenUrl": "/oauth/token",
+                            "refreshUrl": "/oauth/token",
+                            "scopes": {
+                                "read": "Grant read-only access to all your data except for the account and user info",
+                                "write": "rant write-only access to all your data except for the account and user info",
+                                "profile": "Grant read-only access to the account and user info only",
+                            },
+                        }
+                    }
                 },
             }
         },
@@ -68,21 +84,6 @@ def create_app():
     app.register_blueprint(bp_auth_cli)
     app.register_blueprint(bp_app_cli)
     app.register_blueprint(bp_user_cli)
-
-    server = AuthorizationServer()
-
-    # support all grants
-    server.register_grant(grants.ImplicitGrant)
-    server.register_grant(grants.ClientCredentialsGrant)
-    server.register_grant(grants.AuthorizationCodeGrant)
-    server.register_grant(PasswordGrant)
-    server.register_grant(grants.RefreshTokenGrant)
-
-    server.init_app(app, query_client=query_client, save_token=save_token)
-
-    @app.route('/oauth/token', methods=['POST'])
-    def issue_token():
-        return server.create_token_response()
 
     @app.route('/', methods=['GET'])
     @require_oauth()
