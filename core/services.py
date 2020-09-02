@@ -1,30 +1,45 @@
 from abc import ABC
 from flask import abort
-from playhouse.flask_utils import get_object_or_404
-from playhouse.shortcuts import update_model_from_dict
-from peewee import Model
 
 
 class BaseService(ABC):
     """Class representing the abstract base service."""
 
     _repository = None
+    _options = {}
 
-    def paginate(self, expressions=None, options={}):
+    def set_options(self, options={}):
+        """Set optional data, eg: to pagination."""
+        self._options.update(options)
+        return self
+
+    def paginate(self, **expressions):
         """Retrieve all data by filters paginated."""
-        return self.get_repository().paginate(expressions, options)
+        return self.get_repository().set_options(self._options).paginate(**expressions)
 
-    def get(self, filters={}, options={}):
+    def count(self, **expressions):
+        """Count the number of registers by expressions."""
+        return self.get_repository().count(**expressions)
+
+    def get(self, **expressions):
         """Retrieve all data by filters."""
-        return self.get_repository().get()
+        return self.get_repository().get(**expressions)
 
     def find(self, pk):
         """Retrieve one data by pk."""
         return self.get_repository().find(pk)
 
-    def find_by(self, expressions={}):
+    def filter_by(self, **expressions):
         """Retrieve one data by expressions."""
-        return self.get_repository().find_by(expressions)
+        return self.get_repository().filter_by(**expressions)
+
+    def filter(self, *criterion):
+        """Apply the given filtering criterion using SQL expressions."""
+        return self.get_repository().filter(*criterion)
+
+    def query(self):
+        """Return a query session."""
+        return self.get_repository().query()
 
     def find_or_404(self, pk):
         """Retrieve one data by pk or abort with http status code 404."""
@@ -37,10 +52,6 @@ class BaseService(ABC):
 
     def update(self, pk_or_model, payload):
         """Update data by pk or model."""
-        if isinstance(pk_or_model, Model):
-            update_model_from_dict(pk_or_model, payload).save()
-            return pk_or_model
-
         return self.get_repository().update(pk_or_model, payload)
 
     def update_or_404(self, pk, payload):
@@ -49,10 +60,7 @@ class BaseService(ABC):
 
     def delete(self, pk_or_model):
         """Delete data by pk or model."""
-        if isinstance(pk_or_model, Model):
-            return pk_or_model.delete_instance()
-
-        return self.find(pk_or_model).delete_instance()
+        return self.get_repository().delete(pk_or_model)
 
     def delete_or_404(self, pk):
         """Delete data by pk or abort with http status code 404."""

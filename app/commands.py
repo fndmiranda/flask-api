@@ -5,6 +5,15 @@ from flask import Blueprint
 bp = Blueprint('app', __name__)
 
 
+@bp.cli.command('migrate:create')
+@click.argument('message')
+def migrate_run(message):
+    """Run the revision of migration."""
+    args = ["alembic", "revision", "-m", message]
+
+    subprocess.run(args)
+
+
 @bp.cli.command('migrate:history', context_settings={"ignore_unknown_options": True})
 @click.option('--verbose/--no-shout', default=False)
 @click.option('-r', default=False)

@@ -7,6 +7,6 @@ class PasswordGrant(grants.ResourceOwnerPasswordCredentialsGrant):
     TOKEN_ENDPOINT_AUTH_METHODS = ['client_secret_post']
 
     def authenticate_user(self, username, password):
-        user = UserService().find_by(User.email == username)
-        if user.check_password(password):
+        user = UserService().filter(User.email == username).one_or_none()
+        if user is not None and user.check_password(password):
             return user
